@@ -14,6 +14,8 @@ else
     git clone https://github.com/supervisely/supervisely.git
 fi
 
+cd "$current_dir"
+
 if [ ! -d ".venv" ]; then
     echo "Error: .venv directory not found, please execute sh create_venv.sh first."
     exit 1
