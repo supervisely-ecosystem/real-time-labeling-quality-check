@@ -9,8 +9,8 @@ load_dotenv(os.path.expanduser("~/supervisely.env"))
 # Ensure that local.env contains TEAM_ID and WORKSPACE_ID.
 load_dotenv("local.env")
 
-team_id = sly.io.env.team_id()
-workspace_id = sly.io.env.workspace_id()
+team_id = sly.env.team_id()
+workspace_id = sly.env.workspace_id()
 
 api: sly.Api = sly.Api.from_env()
 
