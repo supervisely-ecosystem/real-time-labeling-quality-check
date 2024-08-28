@@ -1,10 +1,11 @@
 from collections import defaultdict
+from typing import Tuple
 
 import supervisely as sly
 from supervisely.app.widgets import Card
 
 import src.globals as g
-from src.test import NoObjectsCase, Test
+from src.test import AllObjectsCase, NoObjectsCase, Test
 
 card = Card("Hello, world!")
 
@@ -32,7 +33,9 @@ def get_project_meta(project_id: int, force: bool = False) -> sly.ProjectMeta:
     return project_meta_cache[project_id]
 
 
-def get_annotation(image_id: int, project_id: int) -> sly.Annotation:
+def get_annotation_and_meta(
+    image_id: int, project_id: int
+) -> Tuple[sly.Annotation, sly.ProjectMeta]:
     project_meta = get_project_meta(project_id)
     ann_json = g.spawn_api.annotation.download_json(
         image_id, force_metadata_for_links=False
@@ -40,21 +43,20 @@ def get_annotation(image_id: int, project_id: int) -> sly.Annotation:
     sly.logger.debug("Annotation JSON for image_id=%s was downloaded.", image_id)
 
     try:
-        return sly.Annotation.from_json(ann_json, project_meta)
+        return sly.Annotation.from_json(ann_json, project_meta), project_meta
     except Exception:  # TODO: Specify exception.
         project_meta = get_project_meta(project_id, force=True)
-        return sly.Annotation.from_json(ann_json, project_meta)
+        return sly.Annotation.from_json(ann_json, project_meta), project_meta
 
 
-@app.event(sly.Event.ManualSelected.ImageChanged)
-def image_changed(api: sly.Api, event: sly.Event.ManualSelected.ImageChanged):
-    # 1. Obtain annotation in JSON format using image_id.
-    # 2. If project_meta for the current project is not cached, obtain project_meta from the server.
-    # 3. Try to create sly.Annotation object from JSON using project_meta_cache.
-    # 4. If there was an error while creating annotation, assume that project_meta_cache is outdated and update it to create annotation again.
+@app.event(sly.Event.JobEntity.StatusChanged)
+def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
+    # If job status is not "done", skip the event.
+    if not event.job_entity_status == "done":
+        return
 
-    annotation = get_annotation(event.image_id, event.project_id)
+    annotation, project_meta = get_annotation_and_meta(event.image_id, event.project_id)
     sly.logger.debug("Annotation for image_id=%s was obtained.", event.image_id)
 
-    test = Test([NoObjectsCase], event.project_id, annotation)
+    test = Test([NoObjectsCase, AllObjectsCase], project_meta, annotation)
     test.run()
