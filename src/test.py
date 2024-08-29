@@ -4,6 +4,7 @@ import supervisely as sly
 from supervisely.api.annotation_api import AnnotationInfo
 
 import src.globals as g
+import src.ui.settings as settings
 from src.cache import get_issued_id, labels_cache
 
 
@@ -16,8 +17,7 @@ class BaseCase:
         project_name: str,
         project_meta: sly.ProjectMeta,
         annotation_info: AnnotationInfo,
-        **kwargs,
-    ):  # TODO: Switch to sly.AnnotationInfo.
+    ):
         self.project_name = project_name
         self.project_meta = project_meta
         self.annotation_info = annotation_info
@@ -38,21 +38,21 @@ class BaseCase:
     def run_result(self) -> bool:
         raise NotImplementedError()
 
-    @classmethod
-    def set_enabled(cls, value: bool) -> None:
-        cls.enabled = value
+    # @classmethod
+    # def set_enabled(cls, value: bool) -> None:
+    #     cls.enabled = value
 
     @classmethod
     def is_enabled(cls) -> bool:
-        return cls.enabled
+        raise NotImplementedError()
 
-    @classmethod
-    def set_threshold(cls, value: float) -> None:
-        cls.threshold = value
+    # @classmethod
+    # def set_threshold(cls, value: float) -> None:
+    #     cls.threshold = value
 
     @classmethod
     def get_threshold(cls) -> Optional[float]:
-        return cls.threshold
+        raise NotImplementedError()
 
     def run(self):
         if self.run_result():
@@ -93,6 +93,10 @@ class NoObjectsCase(BaseCase):
             )
             return False
 
+    @classmethod
+    def is_enabled(cls) -> bool:
+        return settings.no_objects_case_switch.is_on()
+
 
 class AllObjectsCase(BaseCase):
     # TODO: Implement effective and fast algorithm for this case.
@@ -109,6 +113,10 @@ class AllObjectsCase(BaseCase):
             len(obj_classes_in_annotation),
         )
         return len(obj_classes_in_meta) == len(obj_classes_in_annotation)
+
+    @classmethod
+    def is_enabled(cls) -> bool:
+        return settings.all_objects_case_switch.is_on()
 
 
 class AverageLabelAreaCase(BaseCase):
@@ -145,6 +153,14 @@ class AverageLabelAreaCase(BaseCase):
 
         self.cache_labels()
         return result
+
+    @classmethod
+    def is_enabled(cls) -> bool:
+        return settings.average_label_area_case_switch.is_on()
+
+    @classmethod
+    def get_threshold(cls) -> Optional[float]:
+        return settings.average_label_area_case_input.get_value()
 
     def _get_average_area(self, labels: List[sly.Label]) -> float:
         # TODO: Implement effective algorithm, to avoid iterating over all labels each time.

@@ -1,39 +1,5 @@
 from supervisely.app.widgets import Card, Container, Flexbox, InputNumber, Switch, Text
 
-import src.test as test
-
-
-def value_changed_switch(self, func):
-    route_path = self.get_route_path(Switch.Routes.VALUE_CHANGED)
-    server = self._sly_app.get_server()
-    self._changes_handled = True
-
-    @server.post(route_path)
-    def _click():
-        res = self.is_switched()
-        func(res, self.widget_id)
-
-    return _click
-
-
-def value_changed_input(self, func):
-    route_path = self.get_route_path(InputNumber.Routes.VALUE_CHANGED)
-    server = self._sly_app.get_server()
-    self._changes_handled = True
-
-    @server.post(route_path)
-    def _click():
-        res = self.get_value()
-        self._value = res
-        func(res, self.widget_id)
-
-    return _click
-
-
-Switch.value_changed = value_changed_switch
-InputNumber.value_changed = value_changed_input
-
-
 no_objects_case_switch = Switch(switched=True, widget_id="NoObjectsCase")
 no_objects_case_text = Text("No objects on the image")
 no_objects_case_flexbox = Flexbox([no_objects_case_switch, no_objects_case_text])
@@ -68,22 +34,12 @@ card = Card(
 )
 
 
-def change_case_status(value: bool, widget_id: str) -> None:
-    eval(f"test.{widget_id}.set_enabled({value})")
+def dummy(*args, **kwargs):
+    pass
 
 
-def change_case_threshold(value: float, widget_id: str) -> None:
-    class_name = widget_id.split("_")[0]
-    eval(f"test.{class_name}.set_threshold({value})")
+no_objects_case_switch.value_changed(dummy)
+all_objects_case_switch.value_changed(dummy)
+average_label_area_case_switch.value_changed(dummy)
 
-
-no_objects_case_switch.value_changed(change_case_status)
-all_objects_case_switch.value_changed(change_case_status)
-average_label_area_case_switch.value_changed(change_case_status)
-
-average_label_area_case_input.value_changed(change_case_threshold)
-
-
-# @average_label_area_case_input.value_changed
-# def average_label_area_case_input_changed(value: float) -> None:
-#     test.AverageLabelAreaCase.set_threshold(value)
+average_label_area_case_input.value_changed(dummy)

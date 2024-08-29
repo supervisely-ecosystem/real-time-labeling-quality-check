@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Tuple
 
 import supervisely as sly
 from supervisely.api.annotation_api import AnnotationInfo
@@ -37,29 +36,6 @@ def get_annotation_info(image_id: int) -> AnnotationInfo:
         image_id, force_metadata_for_links=False
     )
     return annotation_info
-
-
-# @sly.timeit
-# def get_annotation_and_meta(
-#     image_id: int, project_id: int
-# ) -> Tuple[sly.Annotation, sly.ProjectMeta]:
-#     project_meta = get_project_meta(project_id)
-#     ann_json = g.spawn_api.annotation.download_json(
-#         image_id, force_metadata_for_links=False
-#     )
-#     sly.logger.debug("Annotation JSON for image_id=%s was downloaded.", image_id)
-
-#     try:
-#         ann = sly.Annotation.from_json(ann_json, project_meta)
-#         # return sly.Annotation.from_json(ann_json, project_meta), project_meta
-#     except Exception:  # TODO: Specify exception.
-#         project_meta = get_project_meta(project_id, force=True)
-#         ann = sly.Annotation.from_json(ann_json, project_meta)
-
-#     ann = ann.clone(
-#         image_id=image_id
-#     )  # TODO: Fix the issue, when image_id is not available in sly.Annotation instance.
-#     return ann, project_meta
 
 
 def get_issued_id(issue_name: str) -> int:
