@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import supervisely as sly
 
 import src.globals as g
@@ -21,3 +23,8 @@ def get_or_create_issue(issue_name: str) -> int:
     ).id  # ? Add spawner user as assignee?
 
     return issue_id
+
+
+def get_top_and_left(label: sly.Label) -> Tuple[int, int]:
+    bbox: sly.Rectangle = label.geometry.to_bbox()
+    return bbox.top, bbox.left

@@ -68,6 +68,8 @@ class BaseCase:
             if self.report is not None:
                 g.spawn_api.issues.add_comment(issue_id, self.report)
                 # TODO: Add subissue.
+                # ! Warning! sly.Label does not contain its ID.
+                # g.spawn_api.issues.add_subissue(issue_id)
 
     def cache_labels(self):
         for label in self.annotation.labels:
