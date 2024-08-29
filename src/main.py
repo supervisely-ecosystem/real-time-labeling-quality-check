@@ -1,15 +1,12 @@
-from collections import defaultdict
-from typing import Tuple
+# from collections import defaultdict
+# from typing import Tuple
 
 import supervisely as sly
-from supervisely.app.widgets import Card
 
-import src.globals as g
-from src.cache import get_annotation_and_meta
-from src.test import AllObjectsCase, AverageLabelAreaCase, NoObjectsCase, Test
-
-card = Card("Hello, world!")
-
+# import src.globals as g
+from src.cache import get_annotation_info, get_project_info, get_project_meta
+from src.test import Test  # AllObjectsCase, AverageLabelAreaCase, NoObjectsCase
+from src.ui.settings import card
 
 app = sly.Application(layout=card)
 
@@ -28,10 +25,17 @@ def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
     if not event.job_entity_status == "done":
         return
 
-    annotation, project_meta = get_annotation_and_meta(event.image_id, event.project_id)
-    sly.logger.debug("Annotation for image_id=%s was obtained.", event.image_id)
+    annotation_info = get_annotation_info(event.image_id)
+    project_meta = get_project_meta(event.project_id)
+    project_info = get_project_info(event.project_id)
 
-    test = Test(
-        [NoObjectsCase, AllObjectsCase, AverageLabelAreaCase], project_meta, annotation
-    )
+    test = Test(project_info.name, project_meta, annotation_info)
     test.run()
+
+    # annotation, project_meta = get_annotation_and_meta(event.image_id, event.project_id)
+    # sly.logger.debug("Annotation for image_id=%s was obtained.", event.image_id)
+
+    # test = Test(
+    #     [NoObjectsCase, AllObjectsCase, AverageLabelAreaCase], project_meta, annotation
+    # )
+    # test.run()

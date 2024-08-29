@@ -1,20 +1,31 @@
-from typing import List, Type, Union
+from typing import List, Optional, Union
 
 import supervisely as sly
+from supervisely.api.annotation_api import AnnotationInfo
 
 import src.globals as g
 from src.cache import get_issued_id, labels_cache
 
-AVG_AREA_THRESHOLD = 0.2
-
 
 class BaseCase:
+    enabled = True
+    threshold = None
+
     def __init__(
-        self, project_meta: sly.ProjectMeta, annotation: sly.Annotation
+        self,
+        project_name: str,
+        project_meta: sly.ProjectMeta,
+        annotation_info: AnnotationInfo,
+        **kwargs,
     ):  # TODO: Switch to sly.AnnotationInfo.
+        self.project_name = project_name
         self.project_meta = project_meta
-        self.annotation = annotation
+        self.annotation_info = annotation_info
         self._report: Union[str, None] = None
+
+        self.annotation = sly.Annotation.from_json(
+            self.annotation_info.annotation, self.project_meta
+        )
 
     @property
     def report(self) -> Union[str, None]:
@@ -26,6 +37,22 @@ class BaseCase:
 
     def run_result(self) -> bool:
         raise NotImplementedError()
+
+    @classmethod
+    def set_enabled(cls, value: bool) -> None:
+        cls.enabled = value
+
+    @classmethod
+    def is_enabled(cls) -> bool:
+        return cls.enabled
+
+    @classmethod
+    def set_threshold(cls, value: float) -> None:
+        cls.threshold = value
+
+    @classmethod
+    def get_threshold(cls) -> Optional[float]:
+        return cls.threshold
 
     def run(self):
         if self.run_result():
@@ -40,7 +67,7 @@ class BaseCase:
             )
 
             issue_id = get_issued_id(
-                "TEST ISSUE"
+                self.project_name
             )  # TODO: Get issue name from the project name.
             if self.report is not None:
                 g.spawn_api.issues.add_comment(issue_id, self.report)
@@ -106,14 +133,14 @@ class AverageLabelAreaCase(BaseCase):
 
             # Check if the area of current label not differs from average area more than threshold.
             if self._is_diff_more_than_threshold(
-                label.area, average_area, AVG_AREA_THRESHOLD
+                label.area, average_area, self.get_threshold()
             ):
                 result = False
                 sly.logger.debug(
                     "Label with area %s for class %s differs from average area more than %s.",
                     label.area,
                     label_class_name,
-                    AVG_AREA_THRESHOLD,  # TODO: Get if from the UI widget.
+                    self.get_threshold(),
                 )
 
         self.cache_labels()
@@ -144,27 +171,24 @@ class AverageLabelAreaCase(BaseCase):
 class Test:
     def __init__(
         self,
-        cases: List[Type[BaseCase]],
+        project_name: str,
         project_meta: sly.ProjectMeta,
-        annotation: sly.Annotation,
+        annotation_info: AnnotationInfo,
     ):
-        self._cases = cases
+        self.project_name = project_name
         self.project_meta = project_meta
-        self.annotation = annotation
-        sly.logger.debug("Created test with %s cases.", len(cases))
-
-    @property
-    def cases(self) -> List[Type[BaseCase]]:
-        return self._cases
-
-    @cases.setter
-    def cases(self, value: List[Type[BaseCase]]):
-        self._cases = value
+        self.annotation_info = annotation_info
 
     def run(self):
-        for case in self.cases:
+        # Iterate over subclasses of BaseCase and run them.
+        for case in BaseCase.__subclasses__():
+            if not case.is_enabled():
+                sly.logger.debug("Case %s is disabled, skipping...", case.__name__)
+                continue
             current_case = case(
-                project_meta=self.project_meta, annotation=self.annotation
+                project_name=self.project_name,
+                project_meta=self.project_meta,
+                annotation_info=self.annotation_info,
             )
             current_case.run()
 
