@@ -60,15 +60,11 @@ class BaseCase:
                 "[SUCCESS] Test for case %s passed.", self.__class__.__name__
             )
         else:
-            # TODO: Create an issue using Issues API.
-            # Also, get the error message from the instance of the class.
             sly.logger.info(
                 "[FAILED ] Test for case %s failed.", self.__class__.__name__
             )
 
-            issue_id = get_issued_id(
-                self.project_name
-            )  # TODO: Get issue name from the project name.
+            issue_id = get_issued_id(self.project_name)
             if self.report is not None:
                 g.spawn_api.issues.add_comment(issue_id, self.report)
                 # TODO: Add subissue.
