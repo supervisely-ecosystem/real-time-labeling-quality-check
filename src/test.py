@@ -6,6 +6,7 @@ from supervisely.api.annotation_api import AnnotationInfo
 import src.globals as g
 import src.ui.settings as settings
 from src.cache import get_issued_id, labels_cache
+from src.issues import get_top_and_left
 
 
 class BaseCase:
@@ -21,7 +22,9 @@ class BaseCase:
         self.project_name = project_name
         self.project_meta = project_meta
         self.annotation_info = annotation_info
+
         self._report: Union[str, None] = None
+        self._failed_labels: List[sly.Label] = []
 
         self.annotation = sly.Annotation.from_json(
             self.annotation_info.annotation, self.project_meta
@@ -34,6 +37,10 @@ class BaseCase:
     @report.setter
     def report(self, value: str):
         self._report = value
+
+    @property
+    def failed_labels(self) -> List[sly.Label]:
+        return self._failed_labels
 
     def run_result(self) -> bool:
         raise NotImplementedError()
@@ -67,9 +74,20 @@ class BaseCase:
             issue_id = get_issued_id(self.project_name)
             if self.report is not None:
                 g.spawn_api.issues.add_comment(issue_id, self.report)
-                # TODO: Add subissue.
-                # ! Warning! sly.Label does not contain its ID.
-                # g.spawn_api.issues.add_subissue(issue_id)
+
+                for (
+                    label
+                ) in self.failed_labels:  # TODO: Refactor and move to separate method.
+                    top, left = get_top_and_left(label)
+                    g.spawn_api.issues.add_subissue(
+                        issue_id,
+                        [self.annotation.image_id],
+                        [label.sly_id],
+                        top,
+                        left,
+                        annotation_info=self.annotation_info,
+                        project_meta=self.project_meta,
+                    )
 
     def cache_labels(self):
         for label in self.annotation.labels:
@@ -121,7 +139,7 @@ class AverageLabelAreaCase(BaseCase):
     @sly.timeit
     def run_result(self) -> bool:
         result = True
-        for label in self.annotation.labels:
+        for label in self.annotation.labels:  # TODO: Refactor this mess.
             label_class_name = label.obj_class.name
 
             labels = self.get_labels_by_class(label_class_name)
@@ -149,6 +167,12 @@ class AverageLabelAreaCase(BaseCase):
                     self.get_threshold(),
                 )
 
+            if label not in self.failed_labels:
+                self.failed_labels.append(label)
+
+        failed_label_ids = [label.sly_id for label in self.failed_labels]
+        self.report = f"The labels with following IDs have area that differs from average area more than {self.get_threshold()}: {failed_label_ids}."
+
         self.cache_labels()
         return result
 
@@ -168,7 +192,7 @@ class AverageLabelAreaCase(BaseCase):
             area_sum += label.area
         return area_sum / len(labels)
 
-    def _is_diff_more_than_threshold(
+    def _is_diff_more_than_threshold(  # TODO: Make it universal for all cases.
         self, current_area: float, average_area: float, threshold: float
     ) -> bool:
         abs_diff = abs(current_area - average_area)
