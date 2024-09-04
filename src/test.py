@@ -89,14 +89,8 @@ class BaseCase:
                 project_meta=self.project_meta,
             )
 
-    def cache_labels(self):
-        for label in self.annotation.labels:
-            Cache().class_labels[label.obj_class.name].append(label)
-
-        sly.logger.debug("Labels were cached.")
-
     def get_labels_by_class(self, obj_class_name: str) -> List[sly.Label]:
-        return Cache().class_labels[obj_class_name]
+        return Cache().get_labels_by_class(self.project_info.id, obj_class_name)
 
 
 class NoObjectsCase(BaseCase):
@@ -182,7 +176,6 @@ class AverageLabelAreaCase(BaseCase):
             f"more than {self.get_threshold()}: {[label.sly_id for label in self.failed_labels]}."
         )
 
-        self.cache_labels()
         return result
 
     @classmethod

@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import List
 
 import supervisely as sly
 from supervisely.api.annotation_api import AnnotationInfo
@@ -17,9 +18,6 @@ class Cache(metaclass=Singleton):
 
     # project_id -> image_id -> AnnotationInfo
     annotation_infos = defaultdict(lambda: defaultdict(lambda: None))
-
-    # class_name -> [sly.Label]
-    class_labels = defaultdict(list)
 
     # issue_name -> issue_id
     issues = {}
@@ -108,3 +106,23 @@ class Cache(metaclass=Singleton):
         if issue_name not in self.issues:
             self.issues[issue_name] = get_or_create_issue(issue_name)
         return self.issues[issue_name]
+
+    @sly.timeit
+    def get_labels_by_class(self, project_id: int, class_name: str) -> List[sly.Label]:
+        annotation_infos = self.annotation_infos[project_id]
+        project_meta = self.get_project_meta(project_id)
+
+        annotations = [
+            self.get_annotation(
+                annotation_info, project_meta, self.project_info[project_id]  # type: ignore
+            )
+            for annotation_info in annotation_infos.values()
+        ]
+
+        labels = []
+        for annotation in annotations:
+            for label in annotation.labels:
+                if label.obj_class.name == class_name:
+                    labels.append(label)
+
+        return labels
