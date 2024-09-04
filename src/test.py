@@ -45,17 +45,9 @@ class BaseCase:
     def run_result(self) -> bool:
         raise NotImplementedError()
 
-    # @classmethod
-    # def set_enabled(cls, value: bool) -> None:
-    #     cls.enabled = value
-
     @classmethod
     def is_enabled(cls) -> bool:
         raise NotImplementedError()
-
-    # @classmethod
-    # def set_threshold(cls, value: float) -> None:
-    #     cls.threshold = value
 
     @classmethod
     def get_threshold(cls) -> Optional[float]:
@@ -71,23 +63,28 @@ class BaseCase:
                 "[FAILED ] Test for case %s failed.", self.__class__.__name__
             )
 
-            issue_id = get_issued_id(self.project_name)
-            if self.report is not None:
-                g.spawn_api.issues.add_comment(issue_id, self.report)
+            self.create_issue()
 
-                for (
-                    label
-                ) in self.failed_labels:  # TODO: Refactor and move to separate method.
-                    top, left = get_top_and_left(label)
-                    g.spawn_api.issues.add_subissue(
-                        issue_id,
-                        [self.annotation.image_id],
-                        [label.sly_id],
-                        top,
-                        left,
-                        annotation_info=self.annotation_info,
-                        project_meta=self.project_meta,
-                    )
+    def create_issue(self):
+        issue_id = get_issued_id(self.project_name)
+        if self.report is not None:
+            g.spawn_api.issues.add_comment(issue_id, self.report)
+            sly.logger.debug("Comment was added to issue %s.", issue_id)
+
+            self.create_subissues(issue_id, self.failed_labels)
+
+    def create_subissues(self, issue_id: int, labels: List[sly.Label]):
+        for label in labels:
+            top, left = get_top_and_left(label)
+            g.spawn_api.issues.add_subissue(
+                issue_id,
+                [self.annotation.image_id],
+                [label.sly_id],
+                top,
+                left,
+                annotation_info=self.annotation_info,
+                project_meta=self.project_meta,
+            )
 
     def cache_labels(self):
         for label in self.annotation.labels:
