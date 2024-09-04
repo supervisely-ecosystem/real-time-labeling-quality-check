@@ -145,7 +145,7 @@ class AverageLabelAreaCase(BaseCase):
     @sly.timeit
     def run_result(self) -> bool:
         result = True
-        for label in self.annotation.labels:  # TODO: Refactor this mess.
+        for label in self.annotation.labels:
             label_class_name = label.obj_class.name
 
             labels = self.get_labels_by_class(label_class_name)
@@ -161,7 +161,6 @@ class AverageLabelAreaCase(BaseCase):
                 "Average area for class %s is %s.", label_class_name, average_area
             )
 
-            # Check if the area of current label not differs from average area more than threshold.
             if self._is_diff_more_than_threshold(
                 label.area, average_area, self.get_threshold()
             ):
@@ -173,11 +172,13 @@ class AverageLabelAreaCase(BaseCase):
                     self.get_threshold(),
                 )
 
-            if label not in self.failed_labels:
-                self.failed_labels.append(label)
+                if label not in self.failed_labels:
+                    self.failed_labels.append(label)
 
-        failed_label_ids = [label.sly_id for label in self.failed_labels]
-        self.report = f"The labels with following IDs have area that differs from average area more than {self.get_threshold()}: {failed_label_ids}."
+        self.report = (
+            "The labels with following IDs have area that differs from average area "
+            f"more than {self.get_threshold()}: {[label.sly_id for label in self.failed_labels]}."
+        )
 
         self.cache_labels()
         return result
