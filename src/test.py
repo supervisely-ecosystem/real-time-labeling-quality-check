@@ -53,6 +53,7 @@ class BaseCase:
     def get_threshold(cls) -> Optional[float]:
         raise NotImplementedError()
 
+    @sly.timeit
     def run(self):
         if self.run_result():
             sly.logger.info(
@@ -65,6 +66,7 @@ class BaseCase:
 
             self.create_issue()
 
+    @sly.timeit
     def create_issue(self):
         issue_id = get_issued_id(self.project_name)
         if self.report is not None:
@@ -73,6 +75,7 @@ class BaseCase:
 
             self.create_subissues(issue_id, self.failed_labels)
 
+    @sly.timeit
     def create_subissues(self, issue_id: int, labels: List[sly.Label]):
         for label in labels:
             top, left = get_top_and_left(label)
@@ -97,6 +100,7 @@ class BaseCase:
 
 
 class NoObjectsCase(BaseCase):
+    @sly.timeit
     def run_result(self) -> bool:
         if len(self.annotation.labels) > 0:
             return True
@@ -112,7 +116,6 @@ class NoObjectsCase(BaseCase):
 
 
 class AllObjectsCase(BaseCase):
-    # TODO: Implement effective and fast algorithm for this case.
     @sly.timeit
     def run_result(self) -> bool:
         obj_classes_in_meta = [obj_class for obj_class in self.project_meta.obj_classes]
