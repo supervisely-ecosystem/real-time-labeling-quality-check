@@ -39,12 +39,14 @@ def get_annotation_info(image_id: int) -> AnnotationInfo:
 
 
 def get_annotation(
-    annotation_info: AnnotationInfo, project_meta: sly.ProjectMeta
+    annotation_info: AnnotationInfo,
+    project_meta: sly.ProjectMeta,
+    project_info: sly.ProjectInfo,
 ) -> sly.Annotation:
     try:
         return sly.Annotation.from_json(annotation_info.annotation, project_meta)
     except RuntimeError:
-        project_meta = get_project_meta(annotation_info.project_id, force=True)
+        project_meta = get_project_meta(project_info.id, force=True)
         return sly.Annotation.from_json(annotation_info.annotation, project_meta)
 
 

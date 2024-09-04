@@ -26,7 +26,7 @@ class BaseCase:
         self._report: Union[str, None] = None
         self._failed_labels: List[sly.Label] = []
 
-        self.annotation = get_annotation(annotation_info, project_meta)
+        self.annotation = get_annotation(annotation_info, project_meta, project_info)
 
     @property
     def report(self) -> Union[str, None]:
@@ -192,8 +192,6 @@ class AverageLabelAreaCase(BaseCase):
         return settings.average_label_area_case_input.get_value()
 
     def _get_average_area(self, labels: List[sly.Label]) -> float:
-        # TODO: Implement effective algorithm, to avoid iterating over all labels each time.
-        # For example, store current average area and update it each time new label is added.
         area_sum = 0
         for label in labels:
             area_sum += label.area
