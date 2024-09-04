@@ -18,5 +18,5 @@ def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
     project_meta = get_project_meta(event.project_id)
     project_info = get_project_info(event.project_id)
 
-    test = Test(project_info.name, project_meta, annotation_info)
+    test = Test(project_info, project_meta, annotation_info)
     test.run()

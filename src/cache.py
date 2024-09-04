@@ -38,6 +38,16 @@ def get_annotation_info(image_id: int) -> AnnotationInfo:
     return annotation_info
 
 
+def get_annotation(
+    annotation_info: AnnotationInfo, project_meta: sly.ProjectMeta
+) -> sly.Annotation:
+    try:
+        return sly.Annotation.from_json(annotation_info.annotation, project_meta)
+    except RuntimeError:
+        project_meta = get_project_meta(annotation_info.project_id, force=True)
+        return sly.Annotation.from_json(annotation_info.annotation, project_meta)
+
+
 def get_issued_id(issue_name: str) -> int:
     if issue_name not in issues_cache:
         issues_cache[issue_name] = get_or_create_issue(issue_name)

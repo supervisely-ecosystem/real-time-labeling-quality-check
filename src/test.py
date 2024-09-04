@@ -5,7 +5,7 @@ from supervisely.api.annotation_api import AnnotationInfo
 
 import src.globals as g
 import src.ui.settings as settings
-from src.cache import get_issued_id, labels_cache
+from src.cache import get_annotation, get_issued_id, labels_cache
 from src.issues import get_top_and_left
 
 
@@ -15,20 +15,18 @@ class BaseCase:
 
     def __init__(
         self,
-        project_name: str,
+        project_info: sly.ProjectInfo,
         project_meta: sly.ProjectMeta,
         annotation_info: AnnotationInfo,
     ):
-        self.project_name = project_name
+        self.project_info = project_info
         self.project_meta = project_meta
         self.annotation_info = annotation_info
 
         self._report: Union[str, None] = None
         self._failed_labels: List[sly.Label] = []
 
-        self.annotation = sly.Annotation.from_json(
-            self.annotation_info.annotation, self.project_meta
-        )
+        self.annotation = get_annotation(annotation_info, project_meta)
 
     @property
     def report(self) -> Union[str, None]:
@@ -68,7 +66,7 @@ class BaseCase:
 
     @sly.timeit
     def create_issue(self):
-        issue_id = get_issued_id(self.project_name)
+        issue_id = get_issued_id(self.project_info.name)
         if self.report is not None:
             g.spawn_api.issues.add_comment(issue_id, self.report)
             sly.logger.debug("Comment was added to issue %s.", issue_id)
@@ -106,7 +104,8 @@ class NoObjectsCase(BaseCase):
             return True
         else:
             self.report = (
-                f"No objects were found on the image {self.annotation.image_id}."
+                "No objects were found on the image with ID: "
+                f"{self.annotation_info.image_id}."
             )
             return False
 
@@ -118,17 +117,24 @@ class NoObjectsCase(BaseCase):
 class AllObjectsCase(BaseCase):
     @sly.timeit
     def run_result(self) -> bool:
-        obj_classes_in_meta = [obj_class for obj_class in self.project_meta.obj_classes]
-        obj_classes_in_annotation = []
-        for label in self.annotation.labels:
-            if label.obj_class not in obj_classes_in_annotation:
-                obj_classes_in_annotation.append(label.obj_class)
+        obj_classes_in_meta = {obj_class for obj_class in self.project_meta.obj_classes}
+        obj_classes_in_annotation = {
+            label.obj_class for label in self.annotation.labels
+        }
+
         sly.logger.debug(
             "Number of objects in project meta: %s, in annotation: %s",
             len(obj_classes_in_meta),
             len(obj_classes_in_annotation),
         )
-        return len(obj_classes_in_meta) == len(obj_classes_in_annotation)
+        if obj_classes_in_meta == obj_classes_in_annotation:
+            return True
+        else:
+            self.report = (
+                "Not all objects from project meta were found on the image with ID: "
+                f"{self.annotation_info.image_id}."
+            )
+            return False
 
     @classmethod
     def is_enabled(cls) -> bool:
@@ -192,13 +198,13 @@ class AverageLabelAreaCase(BaseCase):
             area_sum += label.area
         return area_sum / len(labels)
 
-    def _is_diff_more_than_threshold(  # TODO: Make it universal for all cases.
-        self, current_area: float, average_area: float, threshold: float
+    def _is_diff_more_than_threshold(
+        self, value: float, average_value: float, threshold: float
     ) -> bool:
-        abs_diff = abs(current_area - average_area)
-        rel_diff = abs_diff / average_area
+        abs_diff = abs(value - average_value)
+        rel_diff = abs_diff / average_value
         sly.logger.debug(
-            "Difference between current label area and average area: "
+            "Difference between value and average value: "
             "%s (absolute), %s (relative).",
             abs_diff,
             rel_diff,
@@ -209,11 +215,11 @@ class AverageLabelAreaCase(BaseCase):
 class Test:
     def __init__(
         self,
-        project_name: str,
+        project_info: sly.ProjectInfo,
         project_meta: sly.ProjectMeta,
         annotation_info: AnnotationInfo,
     ):
-        self.project_name = project_name
+        self.project_info = project_info
         self.project_meta = project_meta
         self.annotation_info = annotation_info
 
@@ -224,7 +230,7 @@ class Test:
                 sly.logger.debug("Case %s is disabled, skipping...", case.__name__)
                 continue
             current_case = case(
-                project_name=self.project_name,
+                project_info=self.project_info,
                 project_meta=self.project_meta,
                 annotation_info=self.annotation_info,
             )
