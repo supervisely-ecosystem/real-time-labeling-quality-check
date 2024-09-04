@@ -5,7 +5,7 @@ from supervisely.api.annotation_api import AnnotationInfo
 
 import src.globals as g
 import src.ui.settings as settings
-from src.cache import get_annotation, get_issued_id, labels_cache
+from src.cache import Cache
 from src.issues import get_top_and_left
 
 
@@ -26,7 +26,9 @@ class BaseCase:
         self._report: Union[str, None] = None
         self._failed_labels: List[sly.Label] = []
 
-        self.annotation = get_annotation(annotation_info, project_meta, project_info)
+        self.annotation = Cache().get_annotation(
+            annotation_info, project_meta, project_info
+        )
 
     @property
     def report(self) -> Union[str, None]:
@@ -66,7 +68,7 @@ class BaseCase:
 
     @sly.timeit
     def create_issue(self):
-        issue_id = get_issued_id(self.project_info.name)
+        issue_id = Cache().get_issued_id(self.project_info.name)
         if self.report is not None:
             g.spawn_api.issues.add_comment(issue_id, self.report)
             sly.logger.debug("Comment was added to issue %s.", issue_id)
@@ -89,12 +91,12 @@ class BaseCase:
 
     def cache_labels(self):
         for label in self.annotation.labels:
-            labels_cache[label.obj_class.name].append(label)
+            Cache().class_labels[label.obj_class.name].append(label)
 
         sly.logger.debug("Labels were cached.")
 
     def get_labels_by_class(self, obj_class_name: str) -> List[sly.Label]:
-        return labels_cache[obj_class_name]
+        return Cache().class_labels[obj_class_name]
 
 
 class NoObjectsCase(BaseCase):
