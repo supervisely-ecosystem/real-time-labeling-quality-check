@@ -56,7 +56,7 @@ class Cache(metaclass=Singleton):
                 for annotation_info in annotation_infos:
                     self.annotation_infos[dataset.project_id][
                         annotation_info.image_id
-                    ] = annotation_info
+                    ] = annotation_info  # type: ignore
 
             sly.logger.debug(
                 "Annotation infos for project_id=%s were cached.", project_id
@@ -69,7 +69,7 @@ class Cache(metaclass=Singleton):
     def update_cached_annotation_info(
         self, project_id: int, image_id: int, annotation_info: AnnotationInfo
     ):
-        self.annotation_infos[project_id][image_id] = annotation_info
+        self.annotation_infos[project_id][image_id] = annotation_info  # type: ignore
         sly.logger.debug(
             "Annotation info for project_id=%s and image_id=%s was updated.",
             project_id,
@@ -78,19 +78,19 @@ class Cache(metaclass=Singleton):
 
     def get_project_meta(self, project_id: int, force: bool = False) -> sly.ProjectMeta:
         if project_id not in self.project_meta or force:
-            self.project_meta[project_id] = sly.ProjectMeta.from_json(
+            self.project_meta[project_id] = sly.ProjectMeta.from_json(  # type: ignore
                 g.spawn_api.project.get_meta(project_id)
             )
             sly.logger.debug("Project meta for project_id=%s was updated.", project_id)
-        return self.project_meta[project_id]
+        return self.project_meta[project_id]  # type: ignore
 
     def get_project_info(self, project_id: int) -> sly.ProjectInfo:
         if project_id not in self.project_info:
-            self.project_info[project_id] = g.spawn_api.project.get_info_by_id(
+            self.project_info[project_id] = g.spawn_api.project.get_info_by_id(  # type: ignore
                 project_id
             )
             sly.logger.debug("Project info for project_id=%s was obtained.", project_id)
-        return self.project_info[project_id]
+        return self.project_info[project_id]  # type: ignore
 
     def get_annotation(
         self,

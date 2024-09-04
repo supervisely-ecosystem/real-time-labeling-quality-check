@@ -82,7 +82,7 @@ class BaseCase:
             g.spawn_api.issues.add_subissue(
                 issue_id,
                 [self.annotation.image_id],
-                [label.sly_id],
+                [label.sly_id],  # type: ignore
                 top,
                 left,
                 annotation_info=self.annotation_info,
@@ -164,7 +164,7 @@ class AverageLabelAreaCase(BaseCase):
             )
 
             if self._is_diff_more_than_threshold(
-                label.area, average_area, self.get_threshold()
+                label.area, average_area, self.get_threshold()  # type: ignore
             ):
                 result = False
                 sly.logger.debug(

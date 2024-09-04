@@ -8,7 +8,7 @@ from src.ui.settings import card
 app = sly.Application(layout=card)
 
 
-@app.event(sly.Event.JobEntity.StatusChanged)
+@app.event(sly.Event.JobEntity.StatusChanged)  # type: ignore
 @sly.timeit
 def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
     # If job status is not "done", skip the event.
