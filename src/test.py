@@ -1,4 +1,5 @@
-from typing import List, Optional, Union
+from collections import defaultdict
+from typing import Dict, List, Optional, Union
 
 import supervisely as sly
 from supervisely.api.annotation_api import AnnotationInfo
@@ -157,7 +158,7 @@ class AverageLabelAreaCase(BaseCase):
                 "Average area for class %s is %s.", label_class_name, average_area
             )
 
-            if self._is_diff_more_than_threshold(
+            if is_diff_more_than_threshold(
                 label.area, average_area, self.get_threshold()  # type: ignore
             ):
                 result = False
@@ -174,6 +175,7 @@ class AverageLabelAreaCase(BaseCase):
         self.report = (
             "The labels with following IDs have area that differs from average area "
             f"more than {self.get_threshold()}: {[label.sly_id for label in self.failed_labels]}."
+            f"On the image with ID: {self.annotation_info.image_id}."
         )
 
         return result
@@ -192,18 +194,57 @@ class AverageLabelAreaCase(BaseCase):
             area_sum += label.area
         return area_sum / len(labels)
 
-    def _is_diff_more_than_threshold(
-        self, value: float, average_value: float, threshold: float
-    ) -> bool:
-        abs_diff = abs(value - average_value)
-        rel_diff = abs_diff / average_value
-        sly.logger.debug(
-            "Difference between value and average value: "
-            "%s (absolute), %s (relative).",
-            abs_diff,
-            rel_diff,
+
+class AverageNumberOfClasLabelsCase(BaseCase):
+    @sly.timeit
+    def run_result(self) -> bool:
+        # 1. Group labels in annotation by class to know for each class how many
+        # labels are on the image.
+        # 2. Group labels of the class from cache by images to know what is
+        # the average number of labels for the class on one image.
+        # 3. Iterate over class label groups and compare the number of labels
+        # on the current image with the average number of labels for the class.
+
+        class_labels_in_annotation = group_labels_by_class(self.annotation.labels)
+        result = True
+        failed_class_names = []
+
+        for class_name, labels in class_labels_in_annotation.items():
+            number_of_labels = len(labels)
+            sly.logger.debug(
+                "Number of labels for class %s is %s.", class_name, number_of_labels
+            )
+            average_number_of_labels = Cache().get_average_number_of_class_labels(
+                self.project_info.id, class_name
+            )
+
+            if is_diff_more_than_threshold(
+                number_of_labels, average_number_of_labels, self.get_threshold()  # type: ignore
+            ):
+                result = False
+                sly.logger.debug(
+                    "Number of labels for class %s differs from average more than %s.",
+                    class_name,
+                    self.get_threshold(),
+                )
+
+                failed_class_names.append(class_name)
+
+        self.report = (
+            "The number of labels for classes "
+            f"{failed_class_names} differs from average more than {self.get_threshold()}."
+            f"On the image with ID: {self.annotation_info.image_id}."
         )
-        return rel_diff > threshold
+
+        return result
+
+    @classmethod
+    def is_enabled(cls) -> bool:
+        return settings.average_number_of_class_labels_case_switch.is_on()
+
+    @classmethod
+    def get_threshold(cls) -> Optional[float]:
+        return settings.average_number_of_class_labels_case_input.get_value()
 
 
 class Test:
@@ -231,3 +272,25 @@ class Test:
             current_case.run()
 
         sly.logger.info("All test cases were run.")
+
+
+def is_diff_more_than_threshold(
+    value: float, average_value: float, threshold: float
+) -> bool:
+    abs_diff = abs(value - average_value)
+    rel_diff = abs_diff / average_value
+    sly.logger.debug(
+        "Difference between value and average value: " "%s (absolute), %s (relative).",
+        abs_diff,
+        rel_diff,
+    )
+    return rel_diff > threshold
+
+
+def group_labels_by_class(labels: List[sly.Label]) -> Dict[str, List[sly.Label]]:
+    result = defaultdict(list)
+
+    for label in labels:
+        result[label.obj_class.name].append(label)
+
+    return result

@@ -23,6 +23,9 @@ class Cache(metaclass=Singleton):
     # issue_name -> issue_id
     issues = {}
 
+    # project_id -> class_name -> average number of labels per image
+    class_average_labels = defaultdict(lambda: defaultdict(lambda: None))
+
     @sly.timeit
     def cache_annotation_infos(
         self, project_id: int, force: bool = False, only_labelled: bool = True
@@ -100,6 +103,17 @@ class Cache(metaclass=Singleton):
             project_meta = self.get_project_meta(project_info.id, force=True)
             return sly.Annotation.from_json(annotation_info.annotation, project_meta)
 
+    def get_annotations(
+        self,
+        annotation_infos: List[AnnotationInfo],
+        project_meta: sly.ProjectMeta,
+        project_info: sly.ProjectInfo,
+    ) -> List[sly.Annotation]:
+        return [
+            self.get_annotation(annotation_info, project_meta, project_info)
+            for annotation_info in annotation_infos
+        ]
+
     def get_issued_id(self, issue_name: str) -> int:
         if issue_name not in self.issues:
             self.issues[issue_name] = get_or_create_issue(issue_name)
@@ -110,12 +124,15 @@ class Cache(metaclass=Singleton):
         annotation_infos = self.annotation_infos[project_id]
         project_meta = self.get_project_meta(project_id)
 
-        annotations = [
-            self.get_annotation(
-                annotation_info, project_meta, self.project_info[project_id]  # type: ignore
-            )
-            for annotation_info in annotation_infos.values()
-        ]
+        # annotations = [
+        #     self.get_annotation(
+        #         annotation_info, project_meta, self.project_info[project_id]  # type: ignore
+        #     )
+        #     for annotation_info in annotation_infos.values()
+        # ]
+        annotations = self.get_annotations(
+            list(annotation_infos.values()), project_meta, self.project_info[project_id]  # type: ignore
+        )
 
         labels = []
         for annotation in annotations:
@@ -124,3 +141,16 @@ class Cache(metaclass=Singleton):
                     labels.append(label)
 
         return labels
+
+    @sly.timeit
+    def get_average_number_of_class_labels(self, project_id: int, class_name: str):
+        if class_name not in self.class_average_labels[project_id]:
+            labels = self.get_labels_by_class(project_id, class_name)
+            average_labels = len(labels) / len(self.annotation_infos[project_id])
+            self.class_average_labels[project_id][class_name] = average_labels  # type: ignore
+            sly.logger.debug(
+                "Average number of labels for class %s was calculated: %s.",
+                class_name,
+                average_labels,
+            )
+        return self.class_average_labels[project_id][class_name]
