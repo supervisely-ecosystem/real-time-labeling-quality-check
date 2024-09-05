@@ -1,4 +1,12 @@
-from supervisely.app.widgets import Card, Container, Flexbox, InputNumber, Switch, Text
+from supervisely.app.widgets import (
+    Card,
+    Container,
+    Flexbox,
+    InputNumber,
+    Progress,
+    Switch,
+    Text,
+)
 
 no_objects_case_switch = Switch(switched=True, widget_id="NoObjectsCase")
 no_objects_case_text = Text("No objects on the image")
@@ -21,6 +29,9 @@ average_label_area_case_container = Container(
     [average_label_area_case_flexbox, average_label_area_case_input]
 )
 
+progress_bar = Progress()
+
+
 card = Card(
     "Labeling Quality Check",
     description="List of checks to be performed on the image",
@@ -29,6 +40,7 @@ card = Card(
             no_objects_case_flexbox,
             all_objects_case_flexbox,
             average_label_area_case_container,
+            progress_bar,
         ]
     ),
 )

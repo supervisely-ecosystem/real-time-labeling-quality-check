@@ -7,6 +7,7 @@ from supervisely.app.singleton import Singleton
 
 import src.globals as g
 from src.issues import get_or_create_issue
+from src.ui.settings import progress_bar
 
 
 class Cache(metaclass=Singleton):
@@ -29,27 +30,24 @@ class Cache(metaclass=Singleton):
         if project_id not in self.annotation_infos or force:
             datasets = g.spawn_api.dataset.get_list(project_id)
             for dataset in datasets:
-                filters = None
-                if only_labelled:
-                    # We do not need unlabelled images for the tests.
-                    # Otherwise on huge datasetets, caching will take too long.
-                    filters = [
-                        {
-                            "type": "objects_class",
-                            "data": {
-                                "from": 1,
-                                "to": 9999,
-                                "include": True,
-                                "classId": None,
-                            },
-                        }
-                    ]
-                image_infos = g.spawn_api.image.get_list(dataset.id, filters=filters)
+                image_infos = g.spawn_api.image.get_list(
+                    dataset.id, only_labelled=only_labelled
+                )
                 image_ids = [image_info.id for image_info in image_infos]
 
-                annotation_infos = g.spawn_api.annotation.download_batch(
-                    dataset.id, image_ids, force_metadata_for_links=False
-                )
+                with progress_bar(
+                    message="Caching annotations...", total=len(image_ids)
+                ) as pcb:
+
+                    def progress_cb(to_update: int):
+                        pcb.update(to_update)
+
+                    annotation_infos = g.spawn_api.annotation.download_batch(
+                        dataset.id,
+                        image_ids,
+                        force_metadata_for_links=False,
+                        progress_cb=progress_cb,
+                    )
 
                 for annotation_info in annotation_infos:
                     self.annotation_infos[dataset.project_id][
