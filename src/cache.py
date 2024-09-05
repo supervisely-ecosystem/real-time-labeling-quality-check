@@ -124,12 +124,6 @@ class Cache(metaclass=Singleton):
         annotation_infos = self.annotation_infos[project_id]
         project_meta = self.get_project_meta(project_id)
 
-        # annotations = [
-        #     self.get_annotation(
-        #         annotation_info, project_meta, self.project_info[project_id]  # type: ignore
-        #     )
-        #     for annotation_info in annotation_infos.values()
-        # ]
         annotations = self.get_annotations(
             list(annotation_infos.values()), project_meta, self.project_info[project_id]  # type: ignore
         )
@@ -144,6 +138,13 @@ class Cache(metaclass=Singleton):
 
     @sly.timeit
     def get_average_number_of_class_labels(self, project_id: int, class_name: str):
+        # ! Warning this method calculates average number of labels for class_name
+        # ! even if there are no labels for this class in the image.
+        # E.g. number of labels / number of images.
+        # Which is incorrect, we should only calculate average number of labels
+        # per class for images that have labels for this class on them.
+        # ! Reimplement this method to calculate average number of labels correctly.
+        # E.g. implement method to get number of images with labels for class_name.
         if class_name not in self.class_average_labels[project_id]:
             labels = self.get_labels_by_class(project_id, class_name)
             average_labels = len(labels) / len(self.annotation_infos[project_id])
