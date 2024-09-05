@@ -18,14 +18,23 @@ def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
 
     Cache().cache_annotation_infos(event.project_id)
 
+    # Obtaining actual AnnotationInfo for the image.
     annotation_info = g.spawn_api.annotation.download(
         event.image_id, force_metadata_for_links=False
     )
 
+    # Retrieving project meta and project info from cache.
     project_meta = Cache().get_project_meta(event.project_id)
     project_info = Cache().get_project_info(event.project_id)
 
-    test = Test(project_info, project_meta, annotation_info)
+    # Creating Test object and running the test.
+    test = Test(
+        project_info,
+        project_meta,
+        annotation_info,
+        dataset_id=event.dataset_id,
+        image_id=event.image_id,
+    )
     test.run()
 
     # Save annotation info to cache only after the test is run

@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Union
 
 import supervisely as sly
 from supervisely.api.annotation_api import AnnotationInfo
+from supervisely.imaging.image import get_new_labeling_tool_url
 
 import src.globals as g
 import src.ui.settings as settings
@@ -19,6 +20,7 @@ class BaseCase:
         project_info: sly.ProjectInfo,
         project_meta: sly.ProjectMeta,
         annotation_info: AnnotationInfo,
+        **kwargs,
     ):
         self.project_info = project_info
         self.project_meta = project_meta
@@ -30,6 +32,14 @@ class BaseCase:
         self.annotation = Cache().get_annotation(
             annotation_info, project_meta, project_info
         )
+
+        self.kwargs = kwargs
+
+        # self.team_id = kwargs.get("team_id")
+        # self.workspace_id = kwargs.get("workspace_id")
+        # self.project_id = kwargs.get("project_id")
+        # self.dataset_id = kwargs.get("dataset_id")
+        # self.image_id = kwargs.get("image_id")
 
     @property
     def report(self) -> Union[str, None]:
@@ -71,7 +81,8 @@ class BaseCase:
     def create_issue(self):
         issue_id = Cache().get_issued_id(self.project_info.name)
         if self.report is not None:
-            g.spawn_api.issues.add_comment(issue_id, self.report)
+            report_with_link = self.add_link_to_report(self.report)
+            g.spawn_api.issues.add_comment(issue_id, report_with_link)
             sly.logger.debug("Comment was added to issue %s.", issue_id)
 
             self.create_subissues(issue_id, self.failed_labels)
@@ -90,8 +101,14 @@ class BaseCase:
                 project_meta=self.project_meta,
             )
 
-    def get_labels_by_class(self, obj_class_name: str) -> List[sly.Label]:
-        return Cache().get_labels_by_class(self.project_info.id, obj_class_name)
+    def add_link_to_report(self, report: str) -> str:
+        try:
+            url = get_new_labeling_tool_url(**self.kwargs)
+        except ValueError as e:
+            sly.logger.warn("Failed to get the link to the image: %s", e)
+            return report
+
+        return f"{report}\n\n [Link to the image]({url})"
 
 
 class NoObjectsCase(BaseCase):
@@ -145,7 +162,7 @@ class AverageLabelAreaCase(BaseCase):
         for label in self.annotation.labels:
             label_class_name = label.obj_class.name
 
-            labels = self.get_labels_by_class(label_class_name)
+            labels = Cache().get_labels_by_class(self.project_info.id, label_class_name)
             if len(labels) < 1:
                 sly.logger.debug(
                     "Not enough labels for class %s to calculate average area.",
@@ -270,10 +287,12 @@ class Test:
         project_info: sly.ProjectInfo,
         project_meta: sly.ProjectMeta,
         annotation_info: AnnotationInfo,
+        **kwargs,
     ):
         self.project_info = project_info
         self.project_meta = project_meta
         self.annotation_info = annotation_info
+        self.kwargs = kwargs
 
     def run(self):
         # Iterate over subclasses of BaseCase and run them.
@@ -285,6 +304,7 @@ class Test:
                 project_info=self.project_info,
                 project_meta=self.project_meta,
                 annotation_info=self.annotation_info,
+                **self.kwargs,
             )
             current_case.run()
 
