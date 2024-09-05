@@ -205,7 +205,10 @@ class AverageNumberOfClasLabelsCase(BaseCase):
         # 3. Iterate over class label groups and compare the number of labels
         # on the current image with the average number of labels for the class.
 
-        class_labels_in_annotation = group_labels_by_class(self.annotation.labels)
+        class_labels_in_annotation = group_labels_by_class([self.annotation])
+        class_annotations_in_cache = Cache().group_annotations_by_class(
+            self.project_info.id
+        )
         result = True
         failed_class_names = []
 
@@ -214,8 +217,20 @@ class AverageNumberOfClasLabelsCase(BaseCase):
             sly.logger.debug(
                 "Number of labels for class %s is %s.", class_name, number_of_labels
             )
-            average_number_of_labels = Cache().get_average_number_of_class_labels(
-                self.project_info.id, class_name
+            class_annotations = class_annotations_in_cache.get(class_name, [])
+            number_of_images_with_class = len(class_annotations)
+
+            class_labels_in_cache = group_labels_by_class(class_annotations).get(
+                class_name, []
+            )
+
+            average_number_of_labels = (
+                len(class_labels_in_cache) / number_of_images_with_class
+            )
+            sly.logger.debug(
+                "Average number of labels for class %s is %s.",
+                class_name,
+                average_number_of_labels,
             )
 
             if is_diff_more_than_threshold(
@@ -229,6 +244,8 @@ class AverageNumberOfClasLabelsCase(BaseCase):
                 )
 
                 failed_class_names.append(class_name)
+
+            # TODO: Updated cached information about average number of labels for class.
 
         self.report = (
             "The number of labels for classes "
@@ -287,10 +304,13 @@ def is_diff_more_than_threshold(
     return rel_diff > threshold
 
 
-def group_labels_by_class(labels: List[sly.Label]) -> Dict[str, List[sly.Label]]:
+def group_labels_by_class(
+    annotations: List[sly.Annotation],
+) -> Dict[str, List[sly.Label]]:
     result = defaultdict(list)
 
-    for label in labels:
-        result[label.obj_class.name].append(label)
+    for annotation in annotations:
+        for label in annotation.labels:
+            result[label.obj_class.name].append(label)
 
     return result
