@@ -104,7 +104,7 @@ class BaseCase:
     def add_link_to_report(self, report: str) -> str:
         try:
             url = get_new_labeling_tool_url(**self.kwargs)
-        except ValueError as e:
+        except Exception as e:
             sly.logger.warn("Failed to get the link to the image: %s", e)
             return report
 
