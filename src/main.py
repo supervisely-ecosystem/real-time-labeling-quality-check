@@ -39,7 +39,7 @@ def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
     reports = test.run()
 
     if len(reports) > 0:
-        sly.logger.info("At least one test failed.")
+        sly.logger.info("%s failed tests were found.", len(reports))
 
         # 1. Show notification in the labeling tool.
         # 2. Reject the image in the labeling job.
@@ -51,6 +51,7 @@ def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
                 message=message,
                 notification_type="error",
             )
+            sly.logger.debug("Sent notification: %s to the labeling tool.", message)
 
         if reject_images_switch.is_on():
             g.spawn_api.labeling_job.set_entity_review_status(
