@@ -73,7 +73,7 @@ reject_images_text = Text("Reject images with failed tests")
 reject_images_flexbox = Flexbox([reject_images_switch, reject_images_text])
 
 use_failed_images_switch = Switch(switched=False)
-use_failed_images_text = Text("Use failed images statistics")
+use_failed_images_text = Text("Include failed images in statistics")
 use_failed_images_flexbox = Flexbox([use_failed_images_switch, use_failed_images_text])
 
 settings_card = Card(
@@ -86,7 +86,9 @@ settings_card = Card(
             use_failed_images_flexbox,
         ]
     ),
+    collapsable=True,
 )
+settings_card.collapse()
 container = Container([tests_card, settings_card])
 
 
