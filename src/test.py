@@ -35,12 +35,6 @@ class BaseCase:
 
         self.kwargs = kwargs
 
-        # self.team_id = kwargs.get("team_id")
-        # self.workspace_id = kwargs.get("workspace_id")
-        # self.project_id = kwargs.get("project_id")
-        # self.dataset_id = kwargs.get("dataset_id")
-        # self.image_id = kwargs.get("image_id")
-
     @property
     def report(self) -> Union[str, None]:
         return self._report
@@ -65,25 +59,29 @@ class BaseCase:
         raise NotImplementedError()
 
     @sly.timeit
-    def run(self) -> bool:
+    def run(self) -> Optional[str]:
         if self.run_result():
             sly.logger.info(
                 "[SUCCESS] Test for case %s passed.", self.__class__.__name__
             )
-            return True
         else:
             sly.logger.info(
                 "[FAILED ] Test for case %s failed.", self.__class__.__name__
             )
 
             self.create_issue()
-            return False
+
+        return self.report
 
     @sly.timeit
     def create_issue(self):
         issue_id = Cache().get_issued_id(self.project_info.name)
-        if self.report is not None:
+
+        # Create issue only if the switch is on and if the report is not empty.
+        if self.report is not None and settings.create_issues_switch.is_on():
+            # Add a link to the image to the report.
             report_with_link = self.add_link_to_report(self.report)
+
             g.spawn_api.issues.add_comment(issue_id, report_with_link)
             sly.logger.debug("Comment was added to issue %s.", issue_id)
 
@@ -296,9 +294,14 @@ class Test:
         self.annotation_info = annotation_info
         self.kwargs = kwargs
 
-    def run(self) -> bool:
+        self._reports = []
+
+    @property
+    def reports(self) -> List[str]:
+        return self._reports
+
+    def run(self) -> List[str]:
         # Iterate over subclasses of BaseCase and run them.
-        result = True
         for case in BaseCase.__subclasses__():
             if not case.is_enabled():
                 sly.logger.debug("Case %s is disabled, skipping...", case.__name__)
@@ -309,12 +312,12 @@ class Test:
                 annotation_info=self.annotation_info,
                 **self.kwargs,
             )
-            case_result = current_case.run()
-            if not case_result:
-                result = False
+            case_report = current_case.run()
+            if case_report is not None:
+                self._reports.append(case_report)
 
         sly.logger.info("All test cases were run.")
-        return result
+        return self.reports
 
 
 def is_diff_more_than_threshold(

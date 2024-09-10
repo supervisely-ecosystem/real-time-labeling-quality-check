@@ -50,7 +50,7 @@ average_number_of_class_labels_case_container = Container(
 progress_bar = Progress()
 
 
-card = Card(
+tests_card = Card(
     "Labeling Quality Check",
     description="List of checks to be performed on the image",
     content=Container(
@@ -63,6 +63,31 @@ card = Card(
         ]
     ),
 )
+
+create_issues_switch = Switch(switched=False)
+create_issues_text = Text("Create issues for failed tests")
+create_issues_flexbox = Flexbox([create_issues_switch, create_issues_text])
+
+reject_images_switch = Switch(switched=False)
+reject_images_text = Text("Reject images with failed tests")
+reject_images_flexbox = Flexbox([reject_images_switch, reject_images_text])
+
+use_failed_images_switch = Switch(switched=False)
+use_failed_images_text = Text("Use failed images statistics")
+use_failed_images_flexbox = Flexbox([use_failed_images_switch, use_failed_images_text])
+
+settings_card = Card(
+    "Settings",
+    description="Settings for the labeling quality check",
+    content=Container(
+        [
+            create_issues_flexbox,
+            reject_images_flexbox,
+            use_failed_images_flexbox,
+        ]
+    ),
+)
+container = Container([tests_card, settings_card])
 
 
 def dummy(*args, **kwargs):
@@ -87,6 +112,10 @@ def on_average_number_of_class_labels_case_switch_changed(is_on: bool) -> None:
 
 no_objects_case_switch.value_changed(dummy)
 all_objects_case_switch.value_changed(dummy)
+
+create_issues_switch.value_changed(dummy)
+reject_images_switch.value_changed(dummy)
+use_failed_images_switch.value_changed(dummy)
 
 average_label_area_case_input.value_changed(dummy)
 average_number_of_class_labels_case_input.value_changed(dummy)
