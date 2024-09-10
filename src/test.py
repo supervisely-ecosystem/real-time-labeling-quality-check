@@ -65,17 +65,19 @@ class BaseCase:
         raise NotImplementedError()
 
     @sly.timeit
-    def run(self):
+    def run(self) -> bool:
         if self.run_result():
             sly.logger.info(
                 "[SUCCESS] Test for case %s passed.", self.__class__.__name__
             )
+            return True
         else:
             sly.logger.info(
                 "[FAILED ] Test for case %s failed.", self.__class__.__name__
             )
 
             self.create_issue()
+            return False
 
     @sly.timeit
     def create_issue(self):
@@ -294,8 +296,9 @@ class Test:
         self.annotation_info = annotation_info
         self.kwargs = kwargs
 
-    def run(self):
+    def run(self) -> bool:
         # Iterate over subclasses of BaseCase and run them.
+        result = True
         for case in BaseCase.__subclasses__():
             if not case.is_enabled():
                 sly.logger.debug("Case %s is disabled, skipping...", case.__name__)
@@ -306,9 +309,12 @@ class Test:
                 annotation_info=self.annotation_info,
                 **self.kwargs,
             )
-            current_case.run()
+            case_result = current_case.run()
+            if not case_result:
+                result = False
 
         sly.logger.info("All test cases were run.")
+        return result
 
 
 def is_diff_more_than_threshold(

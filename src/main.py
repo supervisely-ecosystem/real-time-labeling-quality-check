@@ -35,10 +35,38 @@ def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
         dataset_id=event.dataset_id,
         image_id=event.image_id,
     )
-    test.run()
+    # TODO: Save reports to the instance of the Test class.
+    # And obtain them to show in notification.
+    result = test.run()
+
+    add_failed_tests_to_cache = True  # TODO: Obtain this from the settings in the UI.
+
+    if not result:
+        sly.logger.info("At least one test failed.")
+
+        # 1. Show notification in the labeling tool.
+        # 2. Reject the image in the labeling job.
+
+        for message in test.reports:  # TODO: Implement this in the Test class.
+            # Show separate notifications for each failed test with detailed information.
+            g.spawn_api.img_ann_tool.show_notification(
+                event.session_id,
+                message=message,
+                notification_type="error",
+            )
+
+        reject_images = True  # TODO: Obtain this from the settings in the UI.
+        if reject_images:
+            g.spawn_api.labeling_job.set_entity_review_status(
+                event.job_id, event.image_id, status="rejected"
+            )
+
+        if not add_failed_tests_to_cache:
+            return
 
     # Save annotation info to cache only after the test is run
     # to avoid using current annotation info parameters in average calculations.
+    # Also, cache is updated only if all tests passed or if the user decided to cache failed tests.
     Cache().update_cached_annotation_info(
         event.project_id, event.image_id, annotation_info
     )
