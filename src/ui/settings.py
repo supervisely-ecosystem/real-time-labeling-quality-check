@@ -69,10 +69,24 @@ def dummy(*args, **kwargs):
     pass
 
 
+@average_label_area_case_switch.value_changed
+def on_average_label_area_case_switch_changed(is_on: bool) -> None:
+    if is_on:
+        average_label_area_case_input.show()
+    else:
+        average_label_area_case_input.hide()
+
+
+@average_number_of_class_labels_case_switch.value_changed
+def on_average_number_of_class_labels_case_switch_changed(is_on: bool) -> None:
+    if is_on:
+        average_number_of_class_labels_case_input.show()
+    else:
+        average_number_of_class_labels_case_input.hide()
+
+
 no_objects_case_switch.value_changed(dummy)
 all_objects_case_switch.value_changed(dummy)
-average_label_area_case_switch.value_changed(dummy)
-average_number_of_class_labels_case_switch.value_changed(dummy)
 
 average_label_area_case_input.value_changed(dummy)
 average_number_of_class_labels_case_input.value_changed(dummy)
