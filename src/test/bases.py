@@ -140,7 +140,8 @@ class BaseCase:
     def create_issue(self) -> None:
         """Create an issue and subissues for the test."""
         # Get the issue ID from the cache.
-        issue_id = Cache().get_issued_id(self.project_info.name)
+        issue_name = f"Annotation Quality Check: {self.project_info.name}"
+        issue_id = Cache().get_issued_id(issue_name)
 
         # Create issue only if the switch is on and if the report is not empty.
         if self.report is not None and settings.create_issues_switch.is_on():
