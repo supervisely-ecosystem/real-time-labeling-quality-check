@@ -8,7 +8,7 @@
   <a href="#Avaiable actions">Avaiable actions</a> •
   <a href="#Available checks">Available checks</a> •
   <a href="#How-To-Run">How To Run</a> •
-  <a href="#Using the results">Using the results</a> •
+  <a href="#Using the results">Using the results</a>
 </p>
 
 [![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/intellisense)
