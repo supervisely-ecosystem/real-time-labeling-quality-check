@@ -1,0 +1,17 @@
+{
+  "type": "app",
+  "version": "2.0.0",
+  "name": "Intellisense",
+  "description": "Interactive labeling quality checks",
+  "docker_image": "supervisely/base-py-sdk:6.73.183",
+  "instance_version": "6.11.16",
+  "categories": ["images", "labeling"],
+  "task_location": "application_sessions",
+  "icon": "ADD ICON HERE!",
+  "icon_cover": true,
+  "headless": false,
+  "poster": "ADD POSTER HERE!",
+  "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
+  "integrated_into": ["image_annotation_tool"],
+  "port": 8000
+}
