@@ -6,6 +6,13 @@ import src.globals as g
 
 
 def get_or_create_issue(issue_name: str) -> int:
+    """Gets or creates an issue with the given name.
+
+    :param issue_name: The name of the issue.
+    :type issue_name: str
+    :return: The ID of the issue.
+    :rtype: int
+    """
     all_issues = g.spawn_api.issues.get_list(team_id=g.spawn_team_id)
     for issue in all_issues:
         if issue.name == issue_name:
@@ -26,5 +33,13 @@ def get_or_create_issue(issue_name: str) -> int:
 
 
 def get_top_and_left(label: sly.Label) -> Tuple[int, int]:
+    """Gets the top and left coordinates of the label.
+    Uses conversion of the geometry to a bounding box.
+
+    :param label: The label to get the coordinates from.
+    :type label: sly.Label
+    :return: The top and left coordinates of the label.
+    :rtype: Tuple[int, int]
+    """
     bbox: sly.Rectangle = label.geometry.to_bbox()
     return bbox.top, bbox.left
