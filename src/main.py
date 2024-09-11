@@ -10,7 +10,16 @@ app = sly.Application(layout=container)
 
 
 @app.event(sly.Event.JobEntity.StatusChanged)  # type: ignore
-def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
+def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged) -> None:
+    """Event handler for the JobEntity.StatusChanged event.
+    This event is triggered when the status of the job entity changes
+    (e.g. user pressed the "Confirm" button).
+
+    :param api: The API object with credentials of the user.
+    :type api: sly.Api
+    :param event: The event object.
+    :type event: sly.Event.JobEntity.StatusChanged
+    """
     # If job status is not "done", skip the event.
     if not event.job_entity_status == "done":
         sly.logger.debug("Job status is not 'done'. Skipping the event.")
