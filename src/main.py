@@ -1,6 +1,7 @@
 import supervisely as sly
 
 import src.globals as g
+import src.test.cases  # NOTE: Do not remove this import.
 from src.cache import Cache
 from src.test import Test
 from src.ui.settings import container, reject_images_switch, use_failed_images_switch
@@ -9,7 +10,6 @@ app = sly.Application(layout=container)
 
 
 @app.event(sly.Event.JobEntity.StatusChanged)  # type: ignore
-@sly.timeit
 def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
     # If job status is not "done", skip the event.
     if not event.job_entity_status == "done":
@@ -41,8 +41,8 @@ def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
     if len(reports) > 0:
         sly.logger.info("%s failed tests were found.", len(reports))
 
-        # 1. Show notification in the labeling tool.
-        # 2. Reject the image in the labeling job.
+        # 1. Show notification in the labeling tool for each failed test.
+        # 2. Reject the image in the labeling job if the setting is on.
 
         for message in test.reports:
             # Show separate notifications for each failed test with detailed information.
@@ -60,6 +60,8 @@ def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged):
             sly.logger.info("The image with ID %s was rejected.", event.image_id)
 
         if not use_failed_images_switch.is_on():
+            # If the setting is off, do not update the cache and return.
+            # In this case failed images will not affect the statistics.
             return
 
     # Save annotation info to cache only after the test is run

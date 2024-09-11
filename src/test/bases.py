@@ -33,6 +33,7 @@ class BaseCase:
     - create_issue: Create an issue for the test.
     - create_subissues: Create subissues for the test.
     - add_link_to_report: Add a link to the image to the report.
+    - add_meta_to_report: Add metadata to the report.
     - run_result: Run the test and return the result.
     - is_enabled: Check if the test is enabled.
     - get_threshold: Get the threshold for the test.
@@ -143,11 +144,14 @@ class BaseCase:
 
         # Create issue only if the switch is on and if the report is not empty.
         if self.report is not None and settings.create_issues_switch.is_on():
+            # Add a metadata to the report.
+            report = self.add_meta_to_report(self.report)
+
             # Add a link to the image to the report.
-            report_with_link = self.add_link_to_report(self.report)
+            report = self.add_link_to_report(report)
 
             # Add comment with detailed report to the issue.
-            g.spawn_api.issues.add_comment(issue_id, report_with_link)
+            g.spawn_api.issues.add_comment(issue_id, report)
             sly.logger.debug("Comment was added to issue %s.", issue_id)
 
             # Create subissues for the failed labels.
@@ -194,6 +198,23 @@ class BaseCase:
 
         return f"{report}\n\n [Link to the image]({url})"
 
+    def add_meta_to_report(self, report: str) -> str:
+        """Modify the report by adding metadata to it.
+
+        :param report: The report to modify.
+        :type report: str
+        :return: The modified report.
+        :rtype: str
+        """
+        meta = (
+            f"Image ID: {self.annotation_info.image_id}\n\n"
+            f"Image Name: {self.annotation_info.image_name}\n\n"
+            f"Project ID: {self.project_info.id}\n\n"
+            f"Project Name: {self.project_info.name}\n\n"
+        )
+
+        return f"{report}\n\n{meta}"
+
 
 class Test:
     """Class for running test using a list of test cases.
@@ -238,6 +259,7 @@ class Test:
         """
         return self._reports
 
+    @sly.timeit
     def run(self) -> List[str]:
         """Run the test.
 

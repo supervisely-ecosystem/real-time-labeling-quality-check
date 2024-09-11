@@ -14,10 +14,7 @@ class NoObjectsCase(BaseCase):
         if len(self.annotation.labels) > 0:
             return True
         else:
-            self.report = (
-                "No objects were found on the image with ID: "
-                f"{self.annotation_info.image_id}."
-            )
+            self.report = "No objects were found on the image."
             return False
 
     @classmethod
@@ -41,10 +38,9 @@ class AllObjectsCase(BaseCase):
         if obj_classes_in_meta == obj_classes_in_annotation:
             return True
         else:
-            self.report = (
-                "Not all objects from project meta were found on the image with ID: "
-                f"{self.annotation_info.image_id}."
-            )
+            missing_classes = obj_classes_in_meta - obj_classes_in_annotation
+            missing_class_names = [obj_class.name for obj_class in missing_classes]
+            self.report = f"The following classes are missing on the image: {missing_class_names}."
             return False
 
     @classmethod
@@ -86,11 +82,12 @@ class AverageLabelAreaCase(BaseCase):
                 if label not in self.failed_labels:
                     self.failed_labels.append(label)
 
-        self.report = (
-            "The labels with following IDs have area that differs from average area "
-            f"more than {self.get_threshold()}: {[label.sly_id for label in self.failed_labels]}."
-            f"On the image with ID: {self.annotation_info.image_id}."
-        )
+        if not result:
+            self.report = (
+                "The labels with following IDs have area that differs from average area "
+                f"more than specified threshold of {self.get_threshold()}: "
+                f"{[label.sly_id for label in self.failed_labels]}."
+            )
 
         return result
 
@@ -159,13 +156,12 @@ class AverageNumberOfClasLabelsCase(BaseCase):
 
                 failed_class_names.append(class_name)
 
-            # TODO: Updated cached information about average number of labels for class.
-
-        self.report = (
-            "The number of labels for classes "
-            f"{failed_class_names} differs from average more than {self.get_threshold()}."
-            f"On the image with ID: {self.annotation_info.image_id}."
-        )
+        if not result:
+            self.report = (
+                "The number of labels for classes "
+                f"{failed_class_names} differs from average more than specified threshold of: "
+                f"{self.get_threshold()}."
+            )
 
         return result
 

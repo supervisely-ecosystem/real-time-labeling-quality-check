@@ -8,7 +8,6 @@ from supervisely.app.widgets import (
     Text,
 )
 
-import src.test.cases  # NOTE: Do not remove this import.
 from src.utils import dummy
 
 # region NoObjectsCase
