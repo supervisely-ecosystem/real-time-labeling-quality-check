@@ -1,16 +1,23 @@
-from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import supervisely as sly
 
 import src.ui.settings as settings
 from src.cache import Cache
 from src.test import BaseCase
+from src.utils import group_labels_by_class, is_diff_more_than_threshold
 
 
 class NoObjectsCase(BaseCase):
+    """This case checks if there are any objects (labels) in the annotation."""
+
     @sly.timeit
     def run_result(self) -> bool:
+        """Checks if there are any objects in the annotation.
+
+        :return: True if there are objects, False otherwise.
+        :rtype: bool
+        """
         if len(self.annotation.labels) > 0:
             return True
         else:
@@ -19,12 +26,24 @@ class NoObjectsCase(BaseCase):
 
     @classmethod
     def is_enabled(cls) -> bool:
+        """Checks if the case is enabled in the (switch widget in the UI) settings.
+
+        :return: True if the case is enabled, False otherwise.
+        :rtype: bool
+        """
         return settings.no_objects_case_switch.is_on()
 
 
 class AllObjectsCase(BaseCase):
+    """This case checks if all objects from the project meta are present on the image."""
+
     @sly.timeit
     def run_result(self) -> bool:
+        """Checks if all objects from the project meta are present on the image.
+
+        :return: True if all objects are present, False otherwise.
+        :rtype: bool
+        """
         obj_classes_in_meta = {obj_class for obj_class in self.project_meta.obj_classes}
         obj_classes_in_annotation = {
             label.obj_class for label in self.annotation.labels
@@ -40,17 +59,30 @@ class AllObjectsCase(BaseCase):
         else:
             missing_classes = obj_classes_in_meta - obj_classes_in_annotation
             missing_class_names = [obj_class.name for obj_class in missing_classes]
+
             self.report = f"The following classes are missing on the image: {missing_class_names}."
             return False
 
     @classmethod
     def is_enabled(cls) -> bool:
+        """Checks if the case is enabled in the (switch widget in the UI) settings.
+
+        :return: True if the case is enabled, False otherwise.
+        :rtype: bool
+        """
         return settings.all_objects_case_switch.is_on()
 
 
 class AverageLabelAreaCase(BaseCase):
+    """This case checks if the area of each label is close to the average area of the class."""
+
     @sly.timeit
     def run_result(self) -> bool:
+        """Checks if the area of each label is close to the average area of the class.
+
+        :return: True if the areas are close, False otherwise.
+        :rtype: bool
+        """
         result = True
         for label in self.annotation.labels:
             label_class_name = label.obj_class.name
@@ -93,13 +125,30 @@ class AverageLabelAreaCase(BaseCase):
 
     @classmethod
     def is_enabled(cls) -> bool:
+        """Checks if the case is enabled in the (switch widget in the UI) settings.
+
+        :return: True if the case is enabled, False otherwise.
+        :rtype: bool
+        """
         return settings.average_label_area_case_switch.is_on()
 
     @classmethod
     def get_threshold(cls) -> Optional[float]:
+        """Gets the threshold value from the (input widget in the UI) settings.
+
+        :return: The threshold value.
+        :rtype: float
+        """
         return settings.average_label_area_case_input.get_value()
 
     def _get_average_area(self, labels: List[sly.Label]) -> float:
+        """Calculates the average area of the labels.
+
+        :param labels: The list of labels.
+        :type labels: List[sly.Label]
+        :return: The average area of the labels.
+        :rtype: float
+        """
         area_sum = 0
         for label in labels:
             area_sum += label.area
@@ -107,8 +156,17 @@ class AverageLabelAreaCase(BaseCase):
 
 
 class AverageNumberOfClasLabelsCase(BaseCase):
+    """This case checks if the number of labels for each class is close to the average number of
+    labels for the class."""
+
     @sly.timeit
     def run_result(self) -> bool:
+        """Checks if the number of labels for each class is close to the average number of labels
+        for the class.
+
+        :return: True if the numbers are close, False otherwise.
+        :rtype: bool
+        """
         # 1. Group labels in annotation by class to know for each class how many
         # labels are on the image.
         # 2. Group labels of the class from cache by images to know what is
@@ -167,33 +225,18 @@ class AverageNumberOfClasLabelsCase(BaseCase):
 
     @classmethod
     def is_enabled(cls) -> bool:
+        """Checks if the case is enabled in the (switch widget in the UI) settings.
+
+        :return: True if the case is enabled, False otherwise.
+        :rtype: bool
+        """
         return settings.average_number_of_class_labels_case_switch.is_on()
 
     @classmethod
     def get_threshold(cls) -> Optional[float]:
+        """Gets the threshold value from the (input widget in the UI) settings.
+
+        :return: The threshold value.
+        :rtype: float
+        """
         return settings.average_number_of_class_labels_case_input.get_value()
-
-
-def is_diff_more_than_threshold(
-    value: float, average_value: float, threshold: float
-) -> bool:
-    abs_diff = abs(value - average_value)
-    rel_diff = abs_diff / average_value
-    sly.logger.debug(
-        "Difference between value and average value: " "%s (absolute), %s (relative).",
-        abs_diff,
-        rel_diff,
-    )
-    return rel_diff > threshold
-
-
-def group_labels_by_class(
-    annotations: List[sly.Annotation],
-) -> Dict[str, List[sly.Label]]:
-    result = defaultdict(list)
-
-    for annotation in annotations:
-        for label in annotation.labels:
-            result[label.obj_class.name].append(label)
-
-    return result
