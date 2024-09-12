@@ -25,9 +25,7 @@ def get_or_create_issue(issue_name: str) -> int:
         "Issue with name %s was not found. Creating a new issue.", issue_name
     )
 
-    issue_id = g.spawn_api.issues.add(
-        g.spawn_team_id, issue_name
-    ).id  # ? Add spawner user as assignee?
+    issue_id = g.spawn_api.issues.add(g.spawn_team_id, issue_name, is_local=True).id
 
     return issue_id
 
