@@ -1,7 +1,7 @@
 <div align="center" markdown>
 <img src="https://github.com/user-attachments/assets/1f2782b2-7eda-43fa-8368-af794f0782ee"/>  
 
-# Intellisense
+# Real-time Labeling Quality Check
 
 <p align="center">
   <a href="#Overview">Overview</a> •
@@ -42,7 +42,22 @@ The application has a set of predefined checks that can be enabled or disabled. 
 ![Available checks](URL_HERE)
 
 # How To Run
-**Step 1:** PASS.
+**Step 1:** Run the appliaction from the `Ecosystem` page.<br>
+
+![Run in Ecosystem](URL_HERE)
+
+**Step 2:** Open the Image Labeling Tool.<br>
+**Step 3:** Open the `Apps` tab and find `Real-time Labeling Quality Check` app.<br>
+
+![Run in Labeling Tool](URL_HERE)
+
+**Step 4:** Click on `Open` button.<br>
+
+![Open in Labeling Tool](URL_HERE)
+
+**Step 5 (optional):** Configure the application: choose the needed checks and actions.<br>
+
+Now you can start labeling images. The application will run in the background and check the labels in real-time. If any issues are found, the application will notify you about them by notification in the Labeling Tool and process other actions depending on the settings.
 
 # Using the results
 Depending on the selected action, the application will show a notification in the Labeling Tool, create a new issue with detailed report or automatically reject the image if working in the Labeling Queue.
