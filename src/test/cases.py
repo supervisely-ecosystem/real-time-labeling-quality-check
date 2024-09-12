@@ -188,6 +188,12 @@ class AverageNumberOfClasLabelsCase(BaseCase):
             )
             class_annotations = class_annotations_in_cache.get(class_name, [])
             number_of_images_with_class = len(class_annotations)
+            if number_of_images_with_class < 1:
+                sly.logger.debug(
+                    "Not enough images with class %s to calculate average number of labels.",
+                    class_name,
+                )
+                continue
 
             class_labels_in_cache = group_labels_by_class(class_annotations).get(
                 class_name, []
