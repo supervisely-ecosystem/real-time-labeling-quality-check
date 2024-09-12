@@ -7,7 +7,8 @@ from supervisely.app.singleton import Singleton
 
 import src.globals as g
 from src.issues import get_or_create_issue
-from src.ui.settings import progress_bar
+
+# from src.ui.settings import progress_bar
 
 
 class Cache(metaclass=Singleton):
@@ -70,25 +71,31 @@ class Cache(metaclass=Singleton):
                 )
                 image_ids = [image_info.id for image_info in image_infos]
 
-                with progress_bar(
-                    message="Caching annotations...", total=len(image_ids)
-                ) as pcb:
+                # ! This code is commented because at the moment of the frontend
+                # ! the app CAN NOT has any status except "Application is started".
+                # ! But the progress bar will change the app's status and this
+                # ! will lead to error in the UI.
+                # ? Consider removing this feature on the frontend to show
+                # ? the progress bar.
+                # with progress_bar(
+                #     message="Caching annotations...", total=len(image_ids)
+                # ) as pcb:
 
-                    def progress_cb(to_update: int) -> None:
-                        """Progress callback for the progress bar,
-                        required to update the progress bar in the UI.
+                #     def progress_cb(to_update: int) -> None:
+                #         """Progress callback for the progress bar,
+                #         required to update the progress bar in the UI.
 
-                        :param to_update: The number of images to update.
-                        :type to_update: int
-                        """
-                        pcb.update(to_update)
+                #         :param to_update: The number of images to update.
+                #         :type to_update: int
+                #         """
+                #         pcb.update(to_update)
 
-                    annotation_infos = g.spawn_api.annotation.download_batch(
-                        dataset.id,
-                        image_ids,
-                        force_metadata_for_links=False,
-                        progress_cb=progress_cb,
-                    )
+                annotation_infos = g.spawn_api.annotation.download_batch(
+                    dataset.id,
+                    image_ids,
+                    force_metadata_for_links=False,
+                    # progress_cb=progress_cb,
+                )
 
                 for annotation_info in annotation_infos:
                     self.annotation_infos[dataset.project_id][

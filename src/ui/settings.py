@@ -1,12 +1,5 @@
-from supervisely.app.widgets import (
-    Card,
-    Container,
-    Flexbox,
-    InputNumber,
-    Progress,
-    Switch,
-    Text,
-)
+from supervisely.app.widgets import Flexbox  # Progress,
+from supervisely.app.widgets import Card, Container, InputNumber, Switch, Text
 
 from src.utils import dummy
 
@@ -96,7 +89,7 @@ average_number_of_class_labels_case_input.value_changed(dummy)
 # endregion
 
 # Progress bar for showing caching progress.
-progress_bar = Progress()
+# progress_bar = Progress()
 
 # Card with all tests.
 tests_card = Card(
@@ -108,7 +101,7 @@ tests_card = Card(
             all_objects_case_flexbox,
             average_label_area_case_container,
             average_number_of_class_labels_case_container,
-            progress_bar,
+            # progress_bar,
         ]
     ),
 )
