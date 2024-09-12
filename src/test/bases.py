@@ -5,7 +5,6 @@ from supervisely.api.annotation_api import AnnotationInfo
 from supervisely.imaging.image import get_new_labeling_tool_url
 
 import src.globals as g
-import src.ui.settings as settings
 from src.cache import Cache
 from src.issues import get_top_and_left
 
@@ -144,7 +143,7 @@ class BaseCase:
         issue_id = Cache().get_issued_id(issue_name)
 
         # Create issue only if the switch is on and if the report is not empty.
-        if self.report is not None and settings.create_issues_switch.is_on():
+        if self.report is not None and g.create_issues:
             # Add a metadata to the report.
             report = self.add_meta_to_report(self.report)
 

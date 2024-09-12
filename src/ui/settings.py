@@ -1,6 +1,8 @@
+import supervisely as sly
 from supervisely.app.widgets import Flexbox  # Progress,
 from supervisely.app.widgets import Card, Container, InputNumber, Switch, Text
 
+import src.globals as g
 from src.utils import dummy
 
 # region NoObjectsCase
@@ -111,7 +113,19 @@ create_issues_switch = Switch(switched=False)
 create_issues_text = Text("Create issues for failed tests")
 create_issues_flexbox = Flexbox([create_issues_switch, create_issues_text])
 
-create_issues_switch.value_changed(dummy)
+
+@create_issues_switch.value_changed
+def create_issues_switch_changed(is_on: bool) -> None:
+    """Callback for the create_issues_switch.
+    Set the global variable create_issues to the value of the switch.
+
+    :param is_on: The state of the switch.
+    :type is_on: bool
+    """
+    g.create_issues = is_on
+    sly.logger.debug("Create issues setting is set to %s.", is_on)
+
+
 # endregion
 
 # region RejectImagesSwitch
@@ -119,7 +133,19 @@ reject_images_switch = Switch(switched=False)
 reject_images_text = Text("Reject images with failed tests")
 reject_images_flexbox = Flexbox([reject_images_switch, reject_images_text])
 
-reject_images_switch.value_changed(dummy)
+
+@reject_images_switch.value_changed
+def reject_images_switch_changed(is_on: bool) -> None:
+    """Callback for the reject_images_switch.
+    Set the global variable reject_images to the value of the switch.
+
+    :param is_on: The state of the switch.
+    :type is_on: bool
+    """
+    g.reject_images = is_on
+    sly.logger.debug("Reject images setting is set to %s.", is_on)
+
+
 # endregion
 
 # region UseFailedImagesSwitch
@@ -127,7 +153,19 @@ use_failed_images_switch = Switch(switched=False)
 use_failed_images_text = Text("Include failed images in statistics")
 use_failed_images_flexbox = Flexbox([use_failed_images_switch, use_failed_images_text])
 
-use_failed_images_switch.value_changed(dummy)
+
+@use_failed_images_switch.value_changed
+def use_failed_images_switch_changed(is_on: bool) -> None:
+    """Callback for the use_failed_images_switch.
+    Set the global variable use_failed_images to the value of the switch.
+
+    :param is_on: The state of the switch.
+    :type is_on: bool
+    """
+    g.use_failed_images = is_on
+    sly.logger.debug("Use failed images setting is set to %s.", is_on)
+
+
 # endregion
 
 # Card with settings.

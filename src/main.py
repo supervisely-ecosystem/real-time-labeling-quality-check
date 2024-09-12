@@ -4,7 +4,7 @@ import src.globals as g
 import src.test.cases  # NOTE: Do not remove this import.
 from src.cache import Cache
 from src.test import Test
-from src.ui.settings import container, reject_images_switch, use_failed_images_switch
+from src.ui.settings import container
 
 app = sly.Application(layout=container)
 
@@ -62,13 +62,13 @@ def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged) -
             )
             sly.logger.debug("Sent notification: %s to the labeling tool.", message)
 
-        if reject_images_switch.is_on():
+        if g.reject_images:
             g.spawn_api.labeling_job.set_entity_review_status(
                 event.job_id, event.image_id, status="rejected"
             )
             sly.logger.info("The image with ID %s was rejected.", event.image_id)
 
-        if not use_failed_images_switch.is_on():
+        if not g.use_failed_images:
             # If the setting is off, do not update the cache and return.
             # In this case failed images will not affect the statistics.
             return

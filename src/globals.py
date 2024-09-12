@@ -21,3 +21,9 @@ sly.logger.debug(
     spawn_team_id,
     spawn_workspace_id,
 )
+
+# region Settings
+create_issues: bool = False
+reject_images: bool = False
+use_failed_images: bool = False
+# endregion
