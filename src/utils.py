@@ -4,13 +4,6 @@ from typing import Dict, List
 import supervisely as sly
 
 
-def dummy(*args, **kwargs):
-    """Dummy function to be used to register a callback for widgets.
-    It does nothing.
-    """
-    pass
-
-
 def is_diff_more_than_threshold(
     value: float, average_value: float, threshold: float
 ) -> bool:

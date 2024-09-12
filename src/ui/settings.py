@@ -3,14 +3,25 @@ from supervisely.app.widgets import Flexbox  # Progress,
 from supervisely.app.widgets import Card, Container, InputNumber, Switch, Text
 
 import src.globals as g
-from src.utils import dummy
 
 # region NoObjectsCase
 no_objects_case_switch = Switch(switched=True)
 no_objects_case_text = Text("No objects on the image")
 no_objects_case_flexbox = Flexbox([no_objects_case_switch, no_objects_case_text])
 
-no_objects_case_switch.value_changed(dummy)
+
+@no_objects_case_switch.value_changed
+def on_no_objects_case_switch_changed(is_on: bool) -> None:
+    """Callback for the no_objects_case_switch.
+    Set the global variable no_objects_case_enabled to the value of the switch.
+
+    :param is_on: The state of the switch.
+    :type is_on: bool
+    """
+    g.no_objects_case_enabled = is_on
+    sly.logger.debug("No objects case setting is set to %s.", is_on)
+
+
 # endregion
 
 # region AllObjectsCase
@@ -18,7 +29,19 @@ all_objects_case_switch = Switch(switched=True)
 all_objects_case_text = Text("Objects of all classes are present on the image")
 all_objects_case_flexbox = Flexbox([all_objects_case_switch, all_objects_case_text])
 
-all_objects_case_switch.value_changed(dummy)
+
+@all_objects_case_switch.value_changed
+def on_all_objects_case_switch_changed(is_on: bool) -> None:
+    """Callback for the all_objects_case_switch.
+    Set the global variable all_objects_case_enabled to the value of the switch.
+
+    :param is_on: The state of the switch.
+    :type is_on: bool
+    """
+    g.all_objects_case_enabled = is_on
+    sly.logger.debug("All objects case setting is set to %s.", is_on)
+
+
 # endregion
 
 # region AverageLabelAreaCase
@@ -28,7 +51,9 @@ average_label_area_case_flexbox = Flexbox(
     [average_label_area_case_switch, average_label_area_case_text]
 )
 
-average_label_area_case_input = InputNumber(value=0.2, min=0.0, max=1.0, step=0.1)
+average_label_area_case_input = InputNumber(
+    value=g.DEFAULT_THRESHOLD, min=0.0, max=1.0, step=0.1
+)
 average_label_area_case_container = Container(
     [average_label_area_case_flexbox, average_label_area_case_input]
 )
@@ -42,13 +67,25 @@ def on_average_label_area_case_switch_changed(is_on: bool) -> None:
     :param is_on: The state of the switch.
     :type is_on: bool
     """
+    g.average_label_area_case_enabled = is_on
     if is_on:
         average_label_area_case_input.show()
     else:
         average_label_area_case_input.hide()
 
 
-average_label_area_case_input.value_changed(dummy)
+@average_label_area_case_input.value_changed
+def on_average_label_area_case_input_changed(value: float) -> None:
+    """Callback for the average_label_area_case_input.
+    Set the global variable average_label_area_case_theshold to the value of the input.
+
+    :param value: The value of the input.
+    :type value: float
+    """
+    g.average_label_area_case_theshold = value
+    sly.logger.debug("Average label area threshold is set to %s.", value)
+
+
 # endregion
 
 # region AverageNumberOfClassLabelsCase
@@ -63,7 +100,7 @@ average_number_of_class_labels_case_flexbox = Flexbox(
     ]
 )
 average_number_of_class_labels_case_input = InputNumber(
-    value=0.2, min=0.0, max=1.0, step=0.1
+    value=g.DEFAULT_THRESHOLD, min=0.0, max=1.0, step=0.1
 )
 average_number_of_class_labels_case_container = Container(
     [
@@ -81,13 +118,26 @@ def on_average_number_of_class_labels_case_switch_changed(is_on: bool) -> None:
     :param is_on: The state of the switch.
     :type is_on: bool
     """
+    g.average_number_of_class_labels_case_enabled = is_on
     if is_on:
         average_number_of_class_labels_case_input.show()
     else:
         average_number_of_class_labels_case_input.hide()
 
 
-average_number_of_class_labels_case_input.value_changed(dummy)
+@average_number_of_class_labels_case_input.value_changed
+def on_average_number_of_class_labels_case_input_changed(value: float) -> None:
+    """Callback for the average_number_of_class_labels_case_input.
+    Set the global variable average_number_of_class_labels_case
+    _theshold to the value of the input.
+
+    :param value: The value of the input.
+    :type value: float
+    """
+    g.average_number_of_class_labels_case_theshold = value
+    sly.logger.debug("Average number of class labels threshold is set to %s.", value)
+
+
 # endregion
 
 # Progress bar for showing caching progress.

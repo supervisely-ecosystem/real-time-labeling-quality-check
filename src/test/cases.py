@@ -2,7 +2,7 @@ from typing import List, Optional
 
 import supervisely as sly
 
-import src.ui.settings as settings
+import src.globals as g
 from src.cache import Cache
 from src.test import BaseCase
 from src.utils import group_labels_by_class, is_diff_more_than_threshold
@@ -31,7 +31,7 @@ class NoObjectsCase(BaseCase):
         :return: True if the case is enabled, False otherwise.
         :rtype: bool
         """
-        return settings.no_objects_case_switch.is_on()
+        return g.no_objects_case_enabled
 
 
 class AllObjectsCase(BaseCase):
@@ -70,7 +70,7 @@ class AllObjectsCase(BaseCase):
         :return: True if the case is enabled, False otherwise.
         :rtype: bool
         """
-        return settings.all_objects_case_switch.is_on()
+        return g.all_objects_case_enabled
 
 
 class AverageLabelAreaCase(BaseCase):
@@ -130,7 +130,7 @@ class AverageLabelAreaCase(BaseCase):
         :return: True if the case is enabled, False otherwise.
         :rtype: bool
         """
-        return settings.average_label_area_case_switch.is_on()
+        return g.average_label_area_case_enabled
 
     @classmethod
     def get_threshold(cls) -> Optional[float]:
@@ -139,7 +139,7 @@ class AverageLabelAreaCase(BaseCase):
         :return: The threshold value.
         :rtype: float
         """
-        return settings.average_label_area_case_input.get_value()
+        return g.average_label_area_case_theshold
 
     def _get_average_area(self, labels: List[sly.Label]) -> float:
         """Calculates the average area of the labels.
@@ -236,7 +236,7 @@ class AverageNumberOfClasLabelsCase(BaseCase):
         :return: True if the case is enabled, False otherwise.
         :rtype: bool
         """
-        return settings.average_number_of_class_labels_case_switch.is_on()
+        return g.average_number_of_class_labels_case_enabled
 
     @classmethod
     def get_threshold(cls) -> Optional[float]:
@@ -245,4 +245,4 @@ class AverageNumberOfClasLabelsCase(BaseCase):
         :return: The threshold value.
         :rtype: float
         """
-        return settings.average_number_of_class_labels_case_input.get_value()
+        return g.average_number_of_class_labels_case_theshold
