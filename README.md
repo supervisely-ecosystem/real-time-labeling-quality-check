@@ -11,11 +11,11 @@
   <a href="#Using the results">Using the results</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/intellisense)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/real-time-labeling-quality-check)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervise.ly/slack)
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/intellisense)
-[![views](https://app.supervise.ly/img/badges/views/supervisely-ecosystem/intellisense.png)](https://supervise.ly)
-[![runs](https://app.supervise.ly/img/badges/runs/supervisely-ecosystem/intellisense.png)](https://supervise.ly)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/real-time-labeling-quality-check)
+[![views](https://app.supervise.ly/img/badges/views/supervisely-ecosystem/real-time-labeling-quality-check.png)](https://supervise.ly)
+[![runs](https://app.supervise.ly/img/badges/runs/supervisely-ecosystem/real-time-labeling-quality-check.png)](https://supervise.ly)
 
 </div>
 
