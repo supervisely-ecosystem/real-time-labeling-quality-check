@@ -130,8 +130,11 @@ class BaseCase:
                 "[FAILED ] Test for case %s failed.", self.__class__.__name__
             )
 
-            # If the test failed, create an issue.
-            self.create_issue()
+            # If the test failed, safely create an issue.
+            try:
+                self.create_issue()
+            except Exception as e:
+                sly.logger.warning("Failed to create an issue: %s", e)
 
         return self.report
 

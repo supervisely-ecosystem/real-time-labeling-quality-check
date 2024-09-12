@@ -55,18 +55,26 @@ def job_status_changed(api: sly.Api, event: sly.Event.JobEntity.StatusChanged) -
 
         for message in test.reports:
             # Show separate notifications for each failed test with detailed information.
-            g.spawn_api.img_ann_tool.show_notification(
-                event.session_id,
-                message=message,
-                notification_type="error",
-            )
-            sly.logger.debug("Sent notification: %s to the labeling tool.", message)
+            try:
+                g.spawn_api.img_ann_tool.show_notification(
+                    event.session_id,
+                    message=message,
+                    notification_type="error",
+                )
+                sly.logger.debug("Sent notification: %s to the labeling tool.", message)
+            except Exception as e:
+                sly.logger.warning(
+                    "Failed to send notification to the Image Labeling Tool: %s", e
+                )
 
         if g.reject_images:
-            g.spawn_api.labeling_job.set_entity_review_status(
-                event.job_id, event.image_id, status="rejected"
-            )
-            sly.logger.info("The image with ID %s was rejected.", event.image_id)
+            try:
+                g.spawn_api.labeling_job.set_entity_review_status(
+                    event.job_id, event.image_id, status="rejected"
+                )
+                sly.logger.info("The image with ID %s was rejected.", event.image_id)
+            except Exception as e:
+                sly.logger.warning("Failed to reject the image: %s", e)
 
         if not g.use_failed_images:
             # If the setting is off, do not update the cache and return.
