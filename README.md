@@ -1,5 +1,5 @@
 <div align="center" markdown>
-<img src="POSTER_HERE"/>  
+<img src="https://github.com/user-attachments/assets/1f2782b2-7eda-43fa-8368-af794f0782ee"/>  
 
 # Intellisense
 

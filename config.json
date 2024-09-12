@@ -10,7 +10,7 @@
   "icon": "https://github.com/user-attachments/assets/ed21892e-4308-4085-b1d7-ef6253134a94",
   "icon_cover": true,
   "headless": false,
-  "poster": "ADD POSTER HERE!",
+  "poster": "https://github.com/user-attachments/assets/1f2782b2-7eda-43fa-8368-af794f0782ee",
   "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
   "integrated_into": ["image_annotation_tool"],
   "port": 8000
