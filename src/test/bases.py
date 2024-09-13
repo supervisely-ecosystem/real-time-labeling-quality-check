@@ -285,11 +285,14 @@ class Test:
                 annotation_info=self.annotation_info,
                 **self.kwargs,
             )
-            case_report = current_case.run()
+            try:
+                case_report = current_case.run()
 
-            # If the case contains a report, add it to the list of reports.
-            if case_report is not None:
-                self._reports.append(case_report)
+                # If the case contains a report, add it to the list of reports.
+                if case_report is not None:
+                    self._reports.append(case_report)
+            except Exception as e:
+                sly.logger.warning("Failed to run the test case: %s", e)
 
         sly.logger.info("All test cases were run.")
         return self.reports
