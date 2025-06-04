@@ -4,7 +4,7 @@
   "name": "Real-time Labeling Quality Check",
   "description": "Automated real-time annotation tests.",
   "docker_image": "supervisely/base-py-sdk:6.73.374",
-  "instance_version": "6.11.44",
+  "instance_version": "6.12.44",
   "categories": ["images", "labeling"],
   "task_location": "application_sessions",
   "icon": "https://github.com/user-attachments/assets/ed21892e-4308-4085-b1d7-ef6253134a94",
