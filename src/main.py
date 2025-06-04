@@ -6,7 +6,7 @@ from src.cache import Cache
 from src.test import Test
 from src.ui.settings import container
 
-app = sly.Application(layout=container)
+app = sly.Application(layout=container, show_header=False)
 
 
 @app.event(sly.Event.JobEntity.StatusChanged)  # type: ignore
